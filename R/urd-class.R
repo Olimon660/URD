@@ -135,8 +135,28 @@ setMethod(
 #' @return An URD object
 #' 
 #' @export
-createURD <- function(count.data, meta=NULL, min.cells=3, min.genes=500, min.counts=10, gene.max.cut=5000, max.genes.in.ram=5000, verbose=T) {
+createURD <- function(count.data, meta=NULL, min.cells=3, min.genes=500, min.counts=10, gene.max.cut=5000, max.genes.in.ram=5000, verbose=T, preprocess=T) {
 
+  if (!preprocess) {
+    # Create an URD object
+    if (verbose) message(paste0(Sys.time(), ": Creating URD object."))
+    object <- new("URD", count.data=as(count.data, "dgCMatrix"))
+    shhhh <- gc()
+    object@logupx.data <- as(count.data, "dgCMatrix")
+  
+    # Set up the grouping IDs
+    if (verbose) message(paste0(Sys.time(), ": Finishing setup of the URD object."))
+    initial.group <- factor(unlist(lapply(colnames(object@logupx.data),function(x) strsplit(x,"_|-")[[1]][1] )))
+    names(initial.group) <- colnames(object@logupx.data)
+    object@group.ids <- data.frame(initial.group)
+    names(object@group.ids) <- "init"
+  
+    # Set up the metadata
+    object@meta <- meta
+  
+    if (verbose) message(paste0(Sys.time(), ": All done."))
+    return(object)
+  }
   # Filter cells by nGenes
   if (verbose) message(paste0(Sys.time(), ": Filtering cells by number of genes."))
   num.genes <- apply(count.data, 2, function(x) sum(x > 0))
