@@ -86,6 +86,8 @@ pseudotimeDetermineLogistic <- function(object, pseudotime, optimal.cells.forwar
 #' @param k (Numeric) Slope of the logistic function. Can be left \code{NULL} if \code{logistic.params} is specified.
 #' @param logistic.params (List) Output from \code{\link{pseudotimeDetermineLogistic}} that specifies both \code{x0} and \code{k}.
 #' @param pseudotime.direction (Character: ">" or "<") Which direction to bias the transition probabilities (\code{"<"} is default, which biases them to move toward cells with younger pseudotime.)
+#' @param max.records (Numeric) To prevent RAM / addressable space problems, maximum transitions to process at a time
+#' @param verbose (Logical) Provide status updates?
 #' 
 #' @return Sparse Matrix (dgCMatrix) of transition probabilities, weighted by pseudotime
 #' 
@@ -104,7 +106,6 @@ pseudotimeDetermineLogistic <- function(object, pseudotime, optimal.cells.forwar
 #' 
 #' @export
 pseudotimeWeightTransitionMatrix <- function(object, pseudotime, x0=NULL, k=NULL, logistic.params=NULL, pseudotime.direction="<", max.records=225e6, verbose=F) {
-
   # Check that pseudotime.direction is valid
   if (!(pseudotime.direction %in% c(">", "<"))) stop ("pseudotime.direction parameter must be either \">\" or \"<\"")
   # Unpack logistic.params

@@ -5,11 +5,13 @@
 \title{Generate force-directed layout using tip-walk data.}
 \usage{
 treeForceDirectedLayout(object, num.nn = NULL, method = c("fr", "drl",
-  "kk"), cells.to.do = NULL, cut.outlier.cells = NULL,
-  cut.outlier.edges = NULL, max.pseudotime.diff = NULL,
-  cut.unconnected.segments = 2, min.final.neighbors = 2,
+  "kk"), cells.to.do = NULL, cell.minimum.walks = 1,
+  cut.outlier.cells = NULL, cut.outlier.edges = NULL,
+  max.pseudotime.diff = NULL, cut.unconnected.segments = 2,
+  min.final.neighbors = 2, remove.duplicate.cells = T,
   tips = object@tree$tips, coords = "auto", start.temp = NULL,
-  density.neighbors = 10, plot.outlier.cuts = F, verbose = F)
+  n.iter = NULL, density.neighbors = 10, plot.outlier.cuts = F,
+  verbose = F)
 }
 \arguments{
 \item{object}{An URD object}
@@ -19,6 +21,8 @@ treeForceDirectedLayout(object, num.nn = NULL, method = c("fr", "drl",
 \item{method}{(Character: "fr", "drl", or "kk") Which force-directed layout algorithm to use (\link[igraph:layout_with_fr]{Fruchterman-Reingold}, \link[igraph:layout_with_drl]{DrL}, or \link[igraph:layout_with_kk]{Kamada-Kawai})}
 
 \item{cells.to.do}{(Character vector) Cells to use in the layout (default \code{NULL} is all cells in the tree.)}
+
+\item{cell.minimum.walks}{(Numeric) Minimum number of times a cell must have been visited by random walks in order to be included in the force-directed layout (Cells that have been visited only a few times are more likely to be assigned incorrectly or poorly.)}
 
 \item{cut.outlier.cells}{(Numeric) If desired, omit cells with unusual second nearest neighbor distances (i.e. those that are likely outliers only well connected to one other cell). Parameter is given as a factor of the interquartile range calculated across all cells' distance to their second nearest neighbor. (Default is not to omit any cells.)}
 
@@ -37,11 +41,15 @@ and permit all connections.}
 \item{min.final.neighbors}{(Numeric) After trimming outlier and unconnected connections in the nearest
 neighbor graph, remove any cells that remain connected to fewer than this many other cells.}
 
+\item{remove.duplicate.cells}{(Logical) If cells have exactly the same visitation during the random walks from each tip, this can create problems in the force-directed layout where cells are pushed to the outside of the layout. To avoid this if \code{remove.duplicate.cells=T}, only one cell from each group of cells with duplicated coordinates will be used in the layout.}
+
 \item{tips}{(Character vector) Tips for which walk visitation data should be used in the construction of the nearest neighbor graph. (Default is all tips )}
 
 \item{coords}{(Matrix: Cells as rows, 2 columns) Starting coordinates for the force directed layout. Default (\code{"auto"}) takes them from the cell layout of the dendrogram.}
 
 \item{start.temp}{(Numeric) Starting temperature for the force-directed layout (if \code{method="fr"}), which controls how much cells can move in the initial iterations of the algorithm. Default (\code{NULL}) is the square root of the number of cells.}
+
+\item{n.iter}{(Numeric or \code{NULL}) Sets the number (or maximum number) of iterations used in the force-directed layout; if \code{NULL}, observes defaults suggested by igraph.}
 
 \item{density.neighbors}{(Numeric) Distance to this nearest neighbor (default is 10th nearest neighbor) is used as a proxy for local density in the force-directed layout. This is used by \code{\link{plotTreeForce}} if \code{density.alpha=T} for increasing transparency in more high density regions of the layout. This can be adjusted after generating the layout by re-running the \code{\link{fdlDensity}} function.}
 
@@ -77,6 +85,8 @@ functions to move or rotate sections of the tree. (For instance, in the zebrafis
 layout, we used these functions to move the completely disconnected EVL and PGC cells
 into place and to increase the angular distance at the first branchpoint in the blastoderm
 so that the more fine-grained branches from the different germ layers didn't overlap.)
+
+Thanks for Dorde Relic for debugging and creating the \code{remove.duplicate.cells} parameter and Simon Cai for debugging that led to the \code{cell.minimum.walks} parameter.
 }
 \examples{
 object.built <- treeForceDirectedLayout(object.built, num.nn=120, pseudotime="pseudotime", method = "fr", dim = 2, cells.to.do = robustly.visited.cells, tips=final.tips, cut.unconnected.segments = 2, min.final.neighbors=4, verbose=T)
